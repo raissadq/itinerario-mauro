@@ -23,7 +23,6 @@
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body { background:var(--cream); color:var(--ink); font-family:'DM Sans',sans-serif; font-weight:300; min-height:100vh; }
 
-  /* HEADER */
   .app-header { background:var(--ink); color:var(--cream); padding:20px 20px 0; position:sticky; top:0; z-index:100; }
   .app-header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
   .app-title { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; }
@@ -33,16 +32,13 @@
   .pill-gold { background:var(--gold); color:var(--ink); }
   .pill-stone { background:rgba(255,255,255,0.12); color:rgba(255,255,255,0.75); }
 
-  /* TABS */
   .tabs { display:flex; background:var(--ink); padding:0 20px 14px; gap:6px; }
   .tab { flex:1; padding:8px 4px; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; transition:all 0.2s; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.55); }
   .tab.active { background:var(--gold); color:var(--ink); font-weight:600; }
 
-  /* VIEWS */
   .view { display:none; }
   .view.active { display:block; }
 
-  /* CALENDAR */
   .calendar-section { padding:16px 16px 8px; }
   .month-label { font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:var(--stone); margin-bottom:10px; padding-left:2px; }
   .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px; }
@@ -63,7 +59,6 @@
   .tipo-trabajo .cal-dot { background:var(--sage); opacity:0.5; }
   .tipo-vuelo .cal-dot { background:var(--gold); }
 
-  /* DETAIL CARD */
   .detail-card { margin:8px 16px 16px; background:var(--white); border-radius:16px; overflow:hidden; box-shadow:0 2px 16px rgba(28,25,23,0.08); animation:slideUp 0.25s ease; }
   @keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
   .detail-header { padding:18px 20px 14px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
@@ -95,7 +90,6 @@
   .nav-btn:first-child { border-right:1px solid var(--border); }
   .nav-btn:disabled { opacity:0.25; cursor:default; }
 
-  /* LIST VIEW */
   .list-view { padding:12px 16px 80px; }
   .week-group { margin-bottom:24px; }
   .week-group-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; padding:0 2px; }
@@ -120,7 +114,6 @@
   .list-day-preview { font-size:12px; color:var(--stone); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .list-day-arrow { display:flex; align-items:center; padding-right:14px; color:var(--stone); font-size:16px; opacity:0.4; }
 
-  /* TIPS VIEW */
   .tips-view { padding:16px 16px 80px; }
   .tips-card { background:var(--ink); border-radius:16px; padding:24px 20px; margin-bottom:12px; }
   .tips-card h3 { font-family:'Playfair Display',serif; font-size:18px; font-style:italic; color:var(--gold); margin-bottom:16px; }
@@ -133,7 +126,6 @@
   .legend-item { display:flex; align-items:center; gap:12px; font-size:13px; }
   .legend-swatch { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
 
-  /* BOTTOM NAV */
   .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--white); border-top:1px solid var(--border); display:flex; padding-bottom:env(safe-area-inset-bottom,0); z-index:100; box-shadow:0 -4px 20px rgba(28,25,23,0.07); }
   .bnav-btn { flex:1; padding:10px 4px 12px; display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:10px; font-weight:500; letter-spacing:0.5px; text-transform:uppercase; color:var(--stone); transition:color 0.15s; }
   .bnav-btn.active { color:var(--ink); }
@@ -160,7 +152,6 @@
   <button class="tab" onclick="switchTab('tips')">💡 Consejos</button>
 </div>
 
-<!-- CALENDAR VIEW -->
 <div id="view-calendar" class="view active scroll-pad">
   <div class="calendar-section">
     <div class="month-label">Marzo 2025</div>
@@ -208,16 +199,13 @@
       <div class="cal-day empty"></div>
     </div>
   </div>
-
   <div id="detail-container"></div>
 </div>
 
-<!-- LIST VIEW -->
 <div id="view-list" class="view">
   <div class="list-view" id="list-container"></div>
 </div>
 
-<!-- TIPS VIEW -->
 <div id="view-tips" class="view">
   <div class="tips-view">
     <div class="tips-card">
@@ -241,7 +229,6 @@
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
 <div class="bottom-nav">
   <button class="bnav-btn active" id="bnav-calendar" onclick="switchTab('calendar')"><div class="bnav-icon">📅</div>Calendario</button>
   <button class="bnav-btn" id="bnav-list" onclick="switchTab('list')"><div class="bnav-icon">📋</div>Lista</button>
