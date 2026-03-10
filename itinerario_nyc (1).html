@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>NYC · Itinerario</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F7F3ED;
+    --ink: #1C1917;
+    --sage: #3D5A47;
+    --sage-light: #E8F0EB;
+    --gold: #C4922A;
+    --gold-light: #FBF3E2;
+    --sky: #2B5278;
+    --sky-light: #E2ECF5;
+    --stone: #78716C;
+    --stone-light: #EDE9E4;
+    --white: #FFFFFF;
+    --border: rgba(28,25,23,0.1);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { background:var(--cream); color:var(--ink); font-family:'DM Sans',sans-serif; font-weight:300; min-height:100vh; }
+
+  /* HEADER */
+  .app-header { background:var(--ink); color:var(--cream); padding:20px 20px 0; position:sticky; top:0; z-index:100; }
+  .app-header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+  .app-title { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; }
+  .app-title em { color:var(--gold); font-style:italic; }
+  .flight-pills { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; margin-top:8px; }
+  .pill { font-size:10px; font-weight:600; letter-spacing:0.8px; padding:3px 9px; border-radius:20px; text-transform:uppercase; }
+  .pill-gold { background:var(--gold); color:var(--ink); }
+  .pill-stone { background:rgba(255,255,255,0.12); color:rgba(255,255,255,0.75); }
+
+  /* TABS */
+  .tabs { display:flex; background:var(--ink); padding:0 20px 14px; gap:6px; }
+  .tab { flex:1; padding:8px 4px; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; transition:all 0.2s; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.55); }
+  .tab.active { background:var(--gold); color:var(--ink); font-weight:600; }
+
+  /* VIEWS */
+  .view { display:none; }
+  .view.active { display:block; }
+
+  /* CALENDAR */
+  .calendar-section { padding:16px 16px 8px; }
+  .month-label { font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:var(--stone); margin-bottom:10px; padding-left:2px; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px; }
+  .cal-dow { text-align:center; font-size:10px; font-weight:600; color:var(--stone); letter-spacing:0.5px; padding:4px 0; text-transform:uppercase; }
+  .cal-day { aspect-ratio:1; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition:transform 0.15s,box-shadow 0.15s; border:1.5px solid transparent; }
+  .cal-day:active { transform:scale(0.93); }
+  .cal-day.empty { background:transparent; cursor:default; }
+  .cal-day.tipo-paseo { background:var(--sky-light); border-color:rgba(43,82,120,0.15); }
+  .cal-day.tipo-trabajo { background:var(--sage-light); border-color:rgba(61,90,71,0.15); }
+  .cal-day.tipo-vuelo { background:var(--gold-light); border-color:rgba(196,146,42,0.25); }
+  .cal-day.selected { box-shadow:0 0 0 2.5px var(--ink); transform:scale(1.06); z-index:2; }
+  .cal-num { font-size:15px; font-weight:600; line-height:1; }
+  .tipo-paseo .cal-num { color:var(--sky); }
+  .tipo-trabajo .cal-num { color:var(--sage); }
+  .tipo-vuelo .cal-num { color:var(--gold); }
+  .cal-dot { width:4px; height:4px; border-radius:50%; margin-top:3px; }
+  .tipo-paseo .cal-dot { background:var(--sky); opacity:0.5; }
+  .tipo-trabajo .cal-dot { background:var(--sage); opacity:0.5; }
+  .tipo-vuelo .cal-dot { background:var(--gold); }
+
+  /* DETAIL CARD */
+  .detail-card { margin:8px 16px 16px; background:var(--white); border-radius:16px; overflow:hidden; box-shadow:0 2px 16px rgba(28,25,23,0.08); animation:slideUp 0.25s ease; }
+  @keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .detail-header { padding:18px 20px 14px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+  .detail-header.tipo-paseo { background:var(--sky-light); }
+  .detail-header.tipo-trabajo { background:var(--sage-light); }
+  .detail-header.tipo-vuelo { background:var(--gold-light); }
+  .detail-day-num { font-family:'Playfair Display',serif; font-size:40px; font-weight:700; line-height:1; }
+  .tipo-paseo .detail-day-num { color:var(--sky); }
+  .tipo-trabajo .detail-day-num { color:var(--sage); }
+  .tipo-vuelo .detail-day-num { color:var(--gold); }
+  .detail-date-text { font-size:13px; color:var(--stone); margin-top:4px; }
+  .detail-focus-badge { font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase; padding:5px 12px; border-radius:20px; margin-top:4px; flex-shrink:0; }
+  .tipo-paseo .detail-focus-badge { background:var(--sky); color:white; }
+  .tipo-trabajo .detail-focus-badge { background:var(--sage); color:white; }
+  .tipo-vuelo .detail-focus-badge { background:var(--gold); color:var(--ink); }
+  .detail-body { padding:18px 20px; }
+  .detail-section-label { font-size:10px; font-weight:600; letter-spacing:2.5px; text-transform:uppercase; color:var(--stone); margin-bottom:10px; }
+  .detail-activities { list-style:none; display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
+  .detail-activities li { font-size:14px; line-height:1.45; padding-left:16px; position:relative; opacity:0.85; }
+  .detail-activities li::before { content:'—'; position:absolute; left:0; color:var(--stone); font-size:11px; top:2px; }
+  .work-section { background:var(--sage-light); border-radius:10px; padding:14px 16px; }
+  .work-section-label { font-size:10px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--sage); margin-bottom:10px; }
+  .work-list { list-style:none; display:flex; flex-direction:column; gap:8px; }
+  .work-list li { font-size:13px; line-height:1.4; color:var(--sage); padding-left:14px; position:relative; font-style:italic; }
+  .work-list li::before { content:'◦'; position:absolute; left:0; font-style:normal; }
+  .nav-days { display:flex; border-top:1px solid var(--border); }
+  .nav-btn { flex:1; padding:14px; background:none; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; color:var(--stone); display:flex; align-items:center; justify-content:center; gap:6px; transition:background 0.15s; }
+  .nav-btn:active { background:var(--stone-light); }
+  .nav-btn:first-child { border-right:1px solid var(--border); }
+  .nav-btn:disabled { opacity:0.25; cursor:default; }
+
+  /* LIST VIEW */
+  .list-view { padding:12px 16px 80px; }
+  .week-group { margin-bottom:24px; }
+  .week-group-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; padding:0 2px; }
+  .week-num-badge { font-family:'Playfair Display',serif; font-size:28px; font-weight:700; color:var(--ink); opacity:0.1; line-height:1; }
+  .week-group-title { font-family:'Playfair Display',serif; font-size:15px; font-style:italic; color:var(--ink); }
+  .week-group-dates { margin-left:auto; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--stone); font-weight:500; }
+  .list-day { background:var(--white); border-radius:12px; margin-bottom:6px; overflow:hidden; cursor:pointer; transition:transform 0.15s; box-shadow:0 1px 4px rgba(28,25,23,0.06); }
+  .list-day:active { transform:scale(0.98); }
+  .list-day-inner { display:flex; align-items:stretch; min-height:64px; }
+  .list-day-stripe { width:4px; flex-shrink:0; }
+  .tipo-paseo .list-day-stripe { background:var(--sky); }
+  .tipo-trabajo .list-day-stripe { background:var(--sage); }
+  .tipo-vuelo .list-day-stripe { background:var(--gold); }
+  .list-day-date { width:52px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px 8px; border-right:1px solid var(--border); }
+  .list-day-num { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; line-height:1; }
+  .tipo-paseo .list-day-num { color:var(--sky); }
+  .tipo-trabajo .list-day-num { color:var(--sage); }
+  .tipo-vuelo .list-day-num { color:var(--gold); }
+  .list-day-dow { font-size:9px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--stone); margin-top:2px; }
+  .list-day-content { flex:1; padding:12px 14px; display:flex; flex-direction:column; justify-content:center; gap:3px; }
+  .list-day-focus { font-size:14px; font-weight:500; color:var(--ink); }
+  .list-day-preview { font-size:12px; color:var(--stone); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .list-day-arrow { display:flex; align-items:center; padding-right:14px; color:var(--stone); font-size:16px; opacity:0.4; }
+
+  /* TIPS VIEW */
+  .tips-view { padding:16px 16px 80px; }
+  .tips-card { background:var(--ink); border-radius:16px; padding:24px 20px; margin-bottom:12px; }
+  .tips-card h3 { font-family:'Playfair Display',serif; font-size:18px; font-style:italic; color:var(--gold); margin-bottom:16px; }
+  .tip-item { display:flex; gap:12px; margin-bottom:14px; align-items:flex-start; }
+  .tip-arrow { color:var(--gold); font-size:14px; flex-shrink:0; margin-top:1px; }
+  .tip-text { font-size:13.5px; color:rgba(247,243,237,0.8); line-height:1.5; }
+  .legend-card { background:var(--white); border-radius:16px; padding:20px; box-shadow:0 1px 4px rgba(28,25,23,0.06); }
+  .legend-card h3 { font-size:10px; font-weight:600; letter-spacing:2.5px; text-transform:uppercase; color:var(--stone); margin-bottom:14px; }
+  .legend-items { display:flex; flex-direction:column; gap:10px; }
+  .legend-item { display:flex; align-items:center; gap:12px; font-size:13px; }
+  .legend-swatch { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+
+  /* BOTTOM NAV */
+  .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--white); border-top:1px solid var(--border); display:flex; padding-bottom:env(safe-area-inset-bottom,0); z-index:100; box-shadow:0 -4px 20px rgba(28,25,23,0.07); }
+  .bnav-btn { flex:1; padding:10px 4px 12px; display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:10px; font-weight:500; letter-spacing:0.5px; text-transform:uppercase; color:var(--stone); transition:color 0.15s; }
+  .bnav-btn.active { color:var(--ink); }
+  .bnav-icon { font-size:20px; line-height:1; }
+  .scroll-pad { padding-bottom:80px; }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="app-header-top">
+    <div class="app-title">Nueva York <em>'25</em></div>
+  </div>
+  <div class="flight-pills">
+    <span class="pill pill-gold">✈ UA 887 · 15 mar</span>
+    <span class="pill pill-stone">29 días</span>
+    <span class="pill pill-gold">✈ UA 886 · 12 abr</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('calendar')">📅 Calendario</button>
+  <button class="tab" onclick="switchTab('list')">📋 Lista</button>
+  <button class="tab" onclick="switchTab('tips')">💡 Consejos</button>
+</div>
+
+<!-- CALENDAR VIEW -->
+<div id="view-calendar" class="view active scroll-pad">
+  <div class="calendar-section">
+    <div class="month-label">Marzo 2025</div>
+    <div class="cal-grid">
+      <div class="cal-dow">Lu</div><div class="cal-dow">Ma</div><div class="cal-dow">Mi</div><div class="cal-dow">Ju</div><div class="cal-dow">Vi</div><div class="cal-dow">Sá</div><div class="cal-dow">Do</div>
+      <div class="cal-day empty"></div><div class="cal-day empty"></div><div class="cal-day empty"></div><div class="cal-day empty"></div><div class="cal-day empty"></div>
+      <div class="cal-day tipo-vuelo" onclick="selectDay(1)" id="cal-1"><div class="cal-num">15</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-paseo" onclick="selectDay(2)" id="cal-2"><div class="cal-num">16</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-trabajo" onclick="selectDay(3)" id="cal-3"><div class="cal-num">17</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-paseo" onclick="selectDay(4)" id="cal-4"><div class="cal-num">18</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-trabajo" onclick="selectDay(5)" id="cal-5"><div class="cal-num">19</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-paseo" onclick="selectDay(6)" id="cal-6"><div class="cal-num">20</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-paseo" onclick="selectDay(7)" id="cal-7"><div class="cal-num">21</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-paseo" onclick="selectDay(8)" id="cal-8"><div class="cal-num">22</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-trabajo" onclick="selectDay(9)" id="cal-9"><div class="cal-num">23</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-paseo" onclick="selectDay(10)" id="cal-10"><div class="cal-num">24</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-trabajo" onclick="selectDay(11)" id="cal-11"><div class="cal-num">25</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-paseo" onclick="selectDay(12)" id="cal-12"><div class="cal-num">26</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-trabajo" onclick="selectDay(13)" id="cal-13"><div class="cal-num">27</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-paseo" onclick="selectDay(14)" id="cal-14"><div class="cal-num">28</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-paseo" onclick="selectDay(15)" id="cal-15"><div class="cal-num">29</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-trabajo" onclick="selectDay(16)" id="cal-16"><div class="cal-num">30</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-paseo" onclick="selectDay(17)" id="cal-17"><div class="cal-num">31</div><div class="cal-dot"></div></div>
+      <div class="cal-day empty"></div><div class="cal-day empty"></div><div class="cal-day empty"></div><div class="cal-day empty"></div><div class="cal-day empty"></div><div class="cal-day empty"></div>
+    </div>
+  </div>
+
+  <div class="calendar-section">
+    <div class="month-label">Abril 2025</div>
+    <div class="cal-grid">
+      <div class="cal-dow">Lu</div><div class="cal-dow">Ma</div><div class="cal-dow">Mi</div><div class="cal-dow">Ju</div><div class="cal-dow">Vi</div><div class="cal-dow">Sá</div><div class="cal-dow">Do</div>
+      <div class="cal-day empty"></div>
+      <div class="cal-day tipo-trabajo" onclick="selectDay(18)" id="cal-18"><div class="cal-num">1</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-paseo" onclick="selectDay(19)" id="cal-19"><div class="cal-num">2</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-trabajo" onclick="selectDay(20)" id="cal-20"><div class="cal-num">3</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-paseo" onclick="selectDay(21)" id="cal-21"><div class="cal-num">4</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-paseo" onclick="selectDay(22)" id="cal-22"><div class="cal-num">5</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-trabajo" onclick="selectDay(23)" id="cal-23"><div class="cal-num">6</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-paseo" onclick="selectDay(24)" id="cal-24"><div class="cal-num">7</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-trabajo" onclick="selectDay(25)" id="cal-25"><div class="cal-num">8</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-paseo" onclick="selectDay(26)" id="cal-26"><div class="cal-num">9</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-paseo" onclick="selectDay(27)" id="cal-27"><div class="cal-num">10</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-paseo" onclick="selectDay(28)" id="cal-28"><div class="cal-num">11</div><div class="cal-dot"></div></div>
+      <div class="cal-day tipo-vuelo" onclick="selectDay(29)" id="cal-29"><div class="cal-num">12</div><div class="cal-dot"></div></div>
+      <div class="cal-day empty"></div>
+    </div>
+  </div>
+
+  <div id="detail-container"></div>
+</div>
+
+<!-- LIST VIEW -->
+<div id="view-list" class="view">
+  <div class="list-view" id="list-container"></div>
+</div>
+
+<!-- TIPS VIEW -->
+<div id="view-tips" class="view">
+  <div class="tips-view">
+    <div class="tips-card">
+      <h3>Consejos prácticos</h3>
+      <div class="tip-item"><div class="tip-arrow">→</div><div class="tip-text">Transporte: MetroCard o pago sin contacto. El metro es la forma más fácil de moverse por Manhattan.</div></div>
+      <div class="tip-item"><div class="tip-arrow">→</div><div class="tip-text">Museos: muchos tienen entrada sugerida (paga lo que puedas). El Met no tiene precio fijo para visitantes.</div></div>
+      <div class="tip-item"><div class="tip-arrow">→</div><div class="tip-text">NYPL (42nd St): la sala de lectura Rose es espectacular — silenciosa, wifi gratuito. Una de las mejores opciones para trabajar en la ciudad.</div></div>
+      <div class="tip-item"><div class="tip-arrow">→</div><div class="tip-text">Governors Island: verificar horarios en govisland.com. El ferry sale desde Lower Manhattan (temporada primavera–otoño).</div></div>
+      <div class="tip-item"><div class="tip-arrow">→</div><div class="tip-text">Whitney Museum: los miércoles de noche la entrada es gratuita o por donación voluntaria.</div></div>
+      <div class="tip-item"><div class="tip-arrow">→</div><div class="tip-text">Días de lluvia: perfectos para museos, bibliotecas o librería + café.</div></div>
+      <div class="tip-item"><div class="tip-arrow">→</div><div class="tip-text">Vuelo UA 886 el 12 de abril: preparar maletas el 11 en la noche para salir tranquilo.</div></div>
+    </div>
+    <div class="legend-card">
+      <h3>Leyenda de colores</h3>
+      <div class="legend-items">
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--sky-light)">🗺️</div><span>Día de paseo y exploración</span></div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--sage-light)">💻</div><span>Día de proyecto (con lugares para trabajar)</span></div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--gold-light)">✈️</div><span>Vuelo</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="bnav-btn active" id="bnav-calendar" onclick="switchTab('calendar')"><div class="bnav-icon">📅</div>Calendario</button>
+  <button class="bnav-btn" id="bnav-list" onclick="switchTab('list')"><div class="bnav-icon">📋</div>Lista</button>
+  <button class="bnav-btn" id="bnav-tips" onclick="switchTab('tips')"><div class="bnav-icon">💡</div>Consejos</button>
+</div>
+
+<script>
+const DAYS = [
+  {n:1,date:"15",mes:"marzo",dow:"Sáb",tipo:"vuelo",focus:"✈ Llegada UA 887",acts:["Vuelo UA 887 — llegada en la mañana","Instalarse y descansar del viaje","Paseo corto por el vecindario, encontrar una cafetería"]},
+  {n:2,date:"16",mes:"marzo",dow:"Dom",tipo:"paseo",focus:"Central Park",acts:["Mañana: paseo por Central Park (Fuente Bethesda, The Mall, el lago)","Tarde libre — descanso o exploración del barrio"]},
+  {n:3,date:"17",mes:"marzo",dow:"Lun",tipo:"trabajo",focus:"Proyecto",acts:["Día completo para el proyecto"],lugares:["New York Public Library (42nd St) — sala de lectura Rose, wifi gratuito","Think Coffee (Mercer St) — tranquila, ideal para trabajar horas","Café Grumpy — favorita de quienes trabajan desde cafés"]},
+  {n:4,date:"18",mes:"marzo",dow:"Mar",tipo:"paseo",focus:"El Met",acts:["Museo Metropolitano de Arte (medio día)","Paseo por la Quinta Avenida y Museum Mile"]},
+  {n:5,date:"19",mes:"marzo",dow:"Mié",tipo:"trabajo",focus:"Proyecto",acts:["Día completo para el proyecto"],lugares:["Strand Bookstore (Broadway & 12th) — sillones para leer y escribir","Joe Coffee — ambiente tranquilo y profesional","Brooklyn Public Library (Grand Army Plaza) — sala de estudio amplia"]},
+  {n:6,date:"20",mes:"marzo",dow:"Jue",tipo:"paseo",focus:"Bajo Manhattan",acts:["Memorial y Museo del 11/S","Paseo por Battery Park, vistas al puerto y la Estatua de la Libertad"]},
+  {n:7,date:"21",mes:"marzo",dow:"Vie",tipo:"paseo",focus:"Descanso",acts:["Explorar el vecindario, mercado de productores, o descansar","Noche: cena en un restaurante local"]},
+  {n:8,date:"22",mes:"marzo",dow:"Sáb",tipo:"paseo",focus:"The High Line",acts:["Caminata por el High Line (empezar en Gansevoort St)","Chelsea Market para el almuerzo"]},
+  {n:9,date:"23",mes:"marzo",dow:"Dom",tipo:"trabajo",focus:"Proyecto",acts:["Día completo para el proyecto"],lugares:["NYPL sucursal Mid-Manhattan (53rd St) — moderna, mesas amplias","McNally Jackson Books (Soho) — librería con café dentro","Gregorys Coffee — muchas sucursales, buena wifi"]},
+  {n:10,date:"24",mes:"marzo",dow:"Lun",tipo:"paseo",focus:"Historia Natural",acts:["Museo Americano de Historia Natural (medio día)","Tarde: paseo por Riverside Park a orillas del Hudson"]},
+  {n:11,date:"25",mes:"marzo",dow:"Mar",tipo:"trabajo",focus:"Proyecto",acts:["Día completo para el proyecto"],lugares:["Housing Works Bookstore Café (Spring St) — librería-cafetería muy tranquila","Toby's Estate Coffee (West Village) — acogedora","The Stavros Niarchos Foundation Library (NYPL, 53rd St)"]},
+  {n:12,date:"26",mes:"marzo",dow:"Mié",tipo:"paseo",focus:"Governors Island",acts:["Ferry a Governors Island desde Lower Manhattan","Fuertes históricos del s. XIX, arte, espacios verdes","Verificar horarios en govisland.com"]},
+  {n:13,date:"27",mes:"marzo",dow:"Jue",tipo:"trabajo",focus:"Proyecto",acts:["Día completo para el proyecto"],lugares:["Ost Café (East Village) — pequeña y muy tranquila","Bibble & Sip (Midtown) — sin mucho ruido","New York Public Library (42nd St) — siempre confiable"]},
+  {n:14,date:"28",mes:"marzo",dow:"Vie",tipo:"paseo",focus:"Upper West Side",acts:["Lincoln Center (explorar la plaza, ver cartelera)","Paseo por Broadway UWS: librerías, cafés y vida de barrio"]},
+  {n:15,date:"29",mes:"marzo",dow:"Sáb",tipo:"paseo",focus:"Harlem",acts:["Mañana: servicio de gospel en iglesia de Harlem (consultar antes)","Tarde: Studio Museum in Harlem"]},
+  {n:16,date:"30",mes:"marzo",dow:"Dom",tipo:"trabajo",focus:"Proyecto",acts:["Día completo para el proyecto"],lugares:["Schomburg Center for Research (Harlem) — biblioteca especializada","Harlem Brew (Frederick Douglass Blvd) — ambiente relajado","Lenox Coffee (Harlem) — íntima y local"]},
+  {n:17,date:"31",mes:"marzo",dow:"Lun",tipo:"paseo",focus:"MoMA",acts:["Museo de Arte Moderno — mejor ir en la mañana entre semana","Paseo por Midtown: Rockefeller Center, Bryant Park"]},
+  {n:18,date:"1",mes:"abril",dow:"Mar",tipo:"trabajo",focus:"Proyecto",acts:["Día completo para el proyecto"],lugares:["Bryant Park — trabajar al aire libre (sillas y mesas gratuitas)","New York Public Library (42nd St) — a pasos de Bryant Park","Argo Tea (Midtown) — mesas largas, ideal para sesiones largas"]},
+  {n:19,date:"2",mes:"abril",dow:"Mié",tipo:"paseo",focus:"Los Claustros",acts:["The Cloisters — arte medieval, vistas al río Hudson","Paseo por Fort Tryon Park","~90 min en metro desde Midtown — ir temprano"]},
+  {n:20,date:"3",mes:"abril",dow:"Jue",tipo:"trabajo",focus:"Proyecto",acts:["Día completo para el proyecto"],lugares:["Inwood Local (Inwood) — cafetería acogedora y tranquila","NYPL sucursal Inwood — pequeña y sin ruido","Le Cheile (Washington Heights) — bar-café con mesas amplias"]},
+  {n:21,date:"4",mes:"abril",dow:"Vie",tipo:"paseo",focus:"Día libre",acts:["Día flexible — visitar algún lugar pendiente o descansar"]},
+  {n:22,date:"5",mes:"abril",dow:"Sáb",tipo:"paseo",focus:"East Village",acts:["Explorar el East Village y Lower East Side a pie","Tenement Museum — historia de la inmigración (reservar con anticipación)"]},
+  {n:23,date:"6",mes:"abril",dow:"Dom",tipo:"trabajo",focus:"Proyecto",acts:["Día completo para el proyecto"],lugares:["Cafe Integral (Nolita) — excelente café, ambiente enfocado","McNally Jackson Books (Soho) — área de café dentro","Housing Works Bookstore Café — tranquila y con buena vibra"]},
+  {n:24,date:"7",mes:"abril",dow:"Lun",tipo:"paseo",focus:"Brooklyn Bridge",acts:["Caminata por el Puente de Brooklyn (salir temprano)","DUMBO: vistas icónicas del puente y el skyline de Manhattan"]},
+  {n:25,date:"8",mes:"abril",dow:"Mar",tipo:"trabajo",focus:"Proyecto",acts:["Día completo para el proyecto"],lugares:["New York Public Library (42nd St) — despedirse de la sala Rose","Think Coffee — una última sesión en un favorito","Strand Bookstore — aprovechar para comprar algo para el viaje"]},
+  {n:26,date:"9",mes:"abril",dow:"Mié",tipo:"paseo",focus:"Whitney Museum",acts:["Whitney Museum of American Art (entrada gratuita miércoles de noche)","Paseo por el Meatpacking District y West Village"]},
+  {n:27,date:"10",mes:"abril",dow:"Jue",tipo:"paseo",focus:"Libre / pendientes",acts:["Volver al lugar favorito del viaje","Compras de último momento, recuerdos"]},
+  {n:28,date:"11",mes:"abril",dow:"Vie",tipo:"paseo",focus:"Despedida",acts:["Último paseo tranquilo por Central Park","Cena especial de despedida","Preparar maletas esta noche para el vuelo de mañana"]},
+  {n:29,date:"12",mes:"abril",dow:"Sáb",tipo:"vuelo",focus:"✈ Regreso UA 886",acts:["Vuelo UA 886 — regreso a casa","Dejar el alojamiento temprano según horario del vuelo"]},
+];
+
+const WEEKS = [
+  {title:"Llegada y primeras exploraciones",dates:"15–21 mar",days:[1,2,3,4,5,6,7]},
+  {title:"Historia, cultura y espacios verdes",dates:"22–28 mar",days:[8,9,10,11,12,13,14]},
+  {title:"Barrios, arte y exploración tranquila",dates:"29 mar–4 abr",days:[15,16,17,18,19,20,21]},
+  {title:"Últimos días y despedida",dates:"5–12 abr",days:[22,23,24,25,26,27,28,29]},
+];
+
+let selectedDay = null;
+
+function selectDay(n) {
+  if (selectedDay !== null) {
+    const prev = document.getElementById('cal-'+selectedDay);
+    if (prev) prev.classList.remove('selected');
+  }
+  if (selectedDay === n) {
+    selectedDay = null;
+    document.getElementById('detail-container').innerHTML = '';
+    return;
+  }
+  selectedDay = n;
+  const el = document.getElementById('cal-'+n);
+  if (el) { el.classList.add('selected'); el.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+  renderDetail(n);
+}
+
+function renderDetail(n) {
+  const d = DAYS[n-1];
+  const container = document.getElementById('detail-container');
+  const lugaresHTML = d.lugares ? `
+    <div class="work-section">
+      <div class="work-section-label">Lugares para trabajar</div>
+      <ul class="work-list">${d.lugares.map(l=>`<li>${l}</li>`).join('')}</ul>
+    </div>` : '';
+  container.innerHTML = `
+    <div class="detail-card">
+      <div class="detail-header tipo-${d.tipo}">
+        <div>
+          <div class="detail-day-num">${d.date}</div>
+          <div class="detail-date-text">${d.dow} · ${d.mes}</div>
+        </div>
+        <div class="detail-focus-badge">${d.focus}</div>
+      </div>
+      <div class="detail-body">
+        <div class="detail-section-label">Actividades</div>
+        <ul class="detail-activities">${d.acts.map(a=>`<li>${a}</li>`).join('')}</ul>
+        ${lugaresHTML}
+      </div>
+      <div class="nav-days">
+        <button class="nav-btn" onclick="selectDay(${n-1})" ${n<=1?'disabled':''}>← Anterior</button>
+        <button class="nav-btn" onclick="selectDay(${n+1})" ${n>=29?'disabled':''}>Siguiente →</button>
+      </div>
+    </div>`;
+  setTimeout(()=>container.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+}
+
+function buildList() {
+  const container = document.getElementById('list-container');
+  let html = '';
+  WEEKS.forEach((w,wi)=>{
+    html += `<div class="week-group">
+      <div class="week-group-header">
+        <div class="week-num-badge">0${wi+1}</div>
+        <div class="week-group-title">${w.title}</div>
+        <div class="week-group-dates">${w.dates}</div>
+      </div>`;
+    w.days.forEach(dn=>{
+      const d = DAYS[dn-1];
+      html += `<div class="list-day tipo-${d.tipo}" onclick="openFromList(${dn})">
+        <div class="list-day-inner">
+          <div class="list-day-stripe"></div>
+          <div class="list-day-date">
+            <div class="list-day-num">${d.date}</div>
+            <div class="list-day-dow">${d.dow}</div>
+          </div>
+          <div class="list-day-content">
+            <div class="list-day-focus">${d.focus}</div>
+            <div class="list-day-preview">${d.acts[0]}</div>
+          </div>
+          <div class="list-day-arrow">›</div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function openFromList(n) {
+  switchTab('calendar');
+  setTimeout(()=>selectDay(n),120);
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+tab).classList.add('active');
+  document.getElementById('bnav-'+tab).classList.add('active');
+  const map={calendar:0,list:1,tips:2};
+  document.querySelectorAll('.tab')[map[tab]].classList.add('active');
+}
+
+buildList();
+</script>
+</body>
+</html>
